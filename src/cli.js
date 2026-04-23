@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { scanPath } from './scanner.js';
 import { buildReport } from './report.js';
@@ -10,6 +11,7 @@ function printHelp() {
 Usage:
   soc-doctor scan <path> [--format text|json|markdown] [--fail-on low|medium|high|critical|none] [--output <file>] [--quiet]
   soc-doctor --help
+  soc-doctor --version
 
 Examples:
   soc-doctor scan .
@@ -18,11 +20,20 @@ Examples:
 `);
 }
 
+async function readPackageVersion() {
+  const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  return packageJson.version;
+}
+
 function parseArgs(argv) {
   const [command, maybeTarget, ...rest] = argv;
 
   if (!command || command === '--help' || command === '-h') {
     return { help: true };
+  }
+
+  if (command === '--version' || command === '-v') {
+    return { version: true };
   }
 
   if (command !== 'scan') {
@@ -69,6 +80,11 @@ function parseArgs(argv) {
       return options;
     }
 
+    if (arg === '--version' || arg === '-v') {
+      options.version = true;
+      return options;
+    }
+
     throw new Error(`Unknown flag "${arg}".`);
   }
 
@@ -92,6 +108,11 @@ async function writeOutputFile(outputPath, contents) {
 
 export async function runCli(argv) {
   const options = parseArgs(argv);
+
+  if (options.version) {
+    console.log(await readPackageVersion());
+    return;
+  }
 
   if (options.help) {
     printHelp();
