@@ -45,6 +45,8 @@ When you publish the package, the intended UX is:
 npx soc-doctor scan .
 ```
 
+Running against an existing Docker Compose SOC stack? See [`docs/quickstart-docker-compose.md`](./docs/quickstart-docker-compose.md) for a read-only scan walk-through and a copy-paste CI workflow.
+
 ## Current checks
 
 **Secrets**
