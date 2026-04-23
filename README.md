@@ -4,6 +4,7 @@ Production-readiness scanner for OpenSearch + Wazuh + Vector SOC stacks.
 
 ![soc-doctor demo](./docs/demo.gif)
 
+[![npm](https://img.shields.io/npm/v/soc-doctor.svg)](https://www.npmjs.com/package/soc-doctor)
 [![CI](https://github.com/tanushgupta/soc-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/tanushgupta/soc-doctor/actions/workflows/ci.yml)
 [![self-test](https://github.com/tanushgupta/soc-doctor/actions/workflows/soc-doctor.yml/badge.svg)](https://github.com/tanushgupta/soc-doctor/actions/workflows/soc-doctor.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
@@ -39,13 +40,21 @@ Heuristic-first, not AST-perfect. Designed to catch painful mistakes fast, not t
 
 ## Quick start
 
+Zero install — run via `npx`:
+
+```bash
+npx soc-doctor scan /path/to/your/stack
+npx soc-doctor scan /path/to/your/stack --format markdown --output report.md
+npx soc-doctor scan /path/to/your/stack --fail-on critical
+```
+
+Or clone and try against the fixture stacks:
+
 ```bash
 git clone https://github.com/tanushgupta/soc-doctor.git
 cd soc-doctor
-
 node bin/soc-doctor.js scan ./examples/broken-stack
 node bin/soc-doctor.js scan ./examples/healthy-stack
-node bin/soc-doctor.js scan /path/to/your/stack --format markdown --output report.md
 ```
 
 Running against a real Docker Compose stack? See [`docs/quickstart-docker-compose.md`](./docs/quickstart-docker-compose.md) for a read-only workflow and CI template.
@@ -103,7 +112,6 @@ The action is self-tested on every push against both fixture stacks — see [.gi
 - Full YAML / TOML AST parsing (regex-first → structural)
 - `.soc-doctor-ignore` for per-finding suppression
 - SARIF output for GitHub code scanning integration
-- npm publish (`npx soc-doctor scan .`)
 - GitHub Marketplace listing
 - Policy profiles (`soc-baseline`, `regulated`, `lab`)
 - Native `vector validate` integration

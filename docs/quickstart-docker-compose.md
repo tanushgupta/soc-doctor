@@ -8,15 +8,13 @@ You already run a SOC stack with `docker compose` (OpenSearch, Wazuh, Vector, Al
 
 ## Scan without installing anything
 
-Because the scanner is pure Node with no native deps, you can run it against your stack directory in one shot:
+Because the scanner is pure Node with no native deps, you can run it against your stack directory in one shot via `npx`:
 
 ```bash
-# Interim — until the package is published to npm:
-git clone https://github.com/tanushgupta/soc-doctor.git /tmp/soc-doctor
-node /tmp/soc-doctor/bin/soc-doctor.js scan /path/to/your/compose-stack
+npx --yes soc-doctor scan /path/to/your/compose-stack
 ```
 
-Once the npm package lands, the same thing will be:
+Or fully isolated inside a throwaway Node container:
 
 ```bash
 docker run --rm -v "$PWD:/stack:ro" node:20-alpine \
@@ -58,14 +56,14 @@ You don't have to match this layout exactly — the checks use content heuristic
 
 ```bash
 # 1. Run the scan, terminal output
-node /tmp/soc-doctor/bin/soc-doctor.js scan /path/to/your/compose-stack
+npx --yes soc-doctor scan /path/to/your/compose-stack
 
 # 2. Save a Markdown report to share or commit
-node /tmp/soc-doctor/bin/soc-doctor.js scan /path/to/your/compose-stack \
+npx --yes soc-doctor scan /path/to/your/compose-stack \
   --format markdown --output soc-doctor-report.md
 
 # 3. Pipe JSON into jq for custom triage
-node /tmp/soc-doctor/bin/soc-doctor.js scan /path/to/your/compose-stack --format json \
+npx --yes soc-doctor scan /path/to/your/compose-stack --format json \
   | jq '.findings[] | select(.severity == "critical")'
 ```
 
