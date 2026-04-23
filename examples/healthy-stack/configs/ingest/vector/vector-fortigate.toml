@@ -1,0 +1,30 @@
+[transforms.parse_fortigate]
+type = "remap"
+inputs = ["fortigate_raw"]
+drop_on_error = true
+reroute_dropped = true
+source = '''
+.host.name = get_env_var("HOSTNAME") ?? "acme-soc-host"
+.host.hostname = get_env_var("HOST_FQDN") ?? get_env_var("HOSTNAME") ?? "acme-soc-host"
+tz_offset = get_env_var("FORTIGATE_TZ_OFFSET") ?? "+05:30"
+timestamp_str = string!(.fortigate_date) + "T" + string!(.fortigate_time) + tz_offset
+parsed_ts, err = parse_timestamp(timestamp_str, "%Y-%m-%dT%H:%M:%S%:z")
+if err == null {
+  .@timestamp = parsed_ts
+}
+'''
+
+[transforms.dlq_fortigate]
+type = "remap"
+inputs = ["parse_fortigate.dropped"]
+source = '''
+.dlq.pipeline = "fortigate"
+.dlq.reason = "parse_failure"
+'''
+
+[sinks.opensearch_dlq_fortigate]
+type = "elasticsearch"
+inputs = ["dlq_fortigate"]
+endpoint = "https://opensearch-node1:9200"
+mode = "bulk"
+bulk.action = "create"

@@ -1,0 +1,8 @@
+route:
+  receiver: infra-team
+
+receivers:
+  - name: infra-team
+    slack_configs:
+      - channel: "#acme-soc-infra"
+        api_url: ${SLACK_WEBHOOK_INFRA}

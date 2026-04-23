@@ -1,0 +1,14 @@
+soc_vector_writer:
+  index_permissions:
+    - index_patterns:
+        - "acme-suricata-*"
+        - "acme-wazuh-*"
+      allowed_actions:
+        - "crud"
+
+soc_api_reader:
+  index_permissions:
+    - index_patterns:
+        - "acme-audit-*"
+      allowed_actions:
+        - "read"

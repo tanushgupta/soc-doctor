@@ -1,0 +1,45 @@
+[sources.wazuh_alerts]
+type = "file"
+include = ["/var/ossec/logs/alerts/alerts.json"]
+read_from = "end"
+
+[sources.wazuh_alerts.fingerprint]
+strategy = "checksum"
+bytes = 512
+
+[transforms.parse_wazuh]
+type = "remap"
+inputs = ["wazuh_alerts"]
+drop_on_error = true
+reroute_dropped = true
+source = '''
+parsed, err = parse_json(string!(.message))
+if err != null {
+  abort
+}
+. = parsed
+.wazuh_alert_id = string(.id) ?? uuid_v4()
+'''
+
+[transforms.dlq_wazuh]
+type = "remap"
+inputs = ["parse_wazuh.dropped"]
+source = '''
+.dlq.pipeline = "wazuh"
+.dlq.reason = "parse_failure"
+'''
+
+[sinks.opensearch_wazuh]
+type = "elasticsearch"
+inputs = ["parse_wazuh"]
+endpoint = "https://opensearch-node1:9200"
+mode = "bulk"
+bulk.action = "create"
+id_key = "wazuh_alert_id"
+
+[sinks.opensearch_dlq_wazuh]
+type = "elasticsearch"
+inputs = ["dlq_wazuh"]
+endpoint = "https://opensearch-node1:9200"
+mode = "bulk"
+bulk.action = "create"

@@ -1,0 +1,29 @@
+{
+  "name": "soc-doctor",
+  "version": "0.1.0",
+  "description": "Production-readiness scanner for OpenSearch + Wazuh + Vector SOC stacks.",
+  "type": "module",
+  "bin": {
+    "soc-doctor": "./bin/soc-doctor.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "node --check ./bin/soc-doctor.js && node --check ./src/*.js && node --check ./src/checks/*.js && node --check ./src/lib/*.js",
+    "scan:broken": "node ./bin/soc-doctor.js scan ./examples/broken-stack",
+    "scan:healthy": "node ./bin/soc-doctor.js scan ./examples/healthy-stack"
+  },
+  "keywords": [
+    "soc",
+    "security",
+    "opensearch",
+    "wazuh",
+    "vector",
+    "cli",
+    "hardening"
+  ],
+  "author": "Tanush Gupta",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

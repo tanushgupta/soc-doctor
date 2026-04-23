@@ -1,0 +1,13 @@
+[transforms.parse_fortigate]
+type = "remap"
+inputs = ["fortigate_raw"]
+source = '''
+.host.name = "ingest-core"
+.host.hostname = "ingest-core.acme-dc.example.local"
+timestamp_str = string!(.fortigate_date) + "T" + string!(.fortigate_time) + "Z"
+parsed_ts, err = parse_timestamp(timestamp_str, "%Y-%m-%dT%H:%M:%SZ")
+if err == null {
+  .@timestamp = parsed_ts
+}
+.original_message = string!(.message) ?? "<binary>"
+'''

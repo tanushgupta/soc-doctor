@@ -1,0 +1,8 @@
+enable_rest: true
+enable_transport: true
+disabled_rest_categories:
+  - AUTHENTICATED
+disabled_transport_categories:
+  - AUTHENTICATED
+ignore_users:
+  - kibanaserver

@@ -1,0 +1,21 @@
+[sources.wazuh_alerts]
+type = "file"
+include = ["/var/ossec/logs/alerts/alerts.json"]
+read_from = "beginning"
+
+[sources.wazuh_alerts.fingerprint]
+strategy = "device_and_inode"
+
+[transforms.parse_wazuh]
+type = "remap"
+inputs = ["wazuh_alerts"]
+source = '''
+. = parse_json!(string!(.message))
+'''
+
+[sinks.opensearch_wazuh]
+type = "elasticsearch"
+inputs = ["parse_wazuh"]
+endpoint = "https://opensearch-node1:9200"
+mode = "bulk"
+bulk.action = "create"

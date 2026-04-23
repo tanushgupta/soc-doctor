@@ -1,0 +1,29 @@
+[sources.suricata]
+type = "file"
+include = ["/var/log/suricata/eve.json"]
+
+[transforms.parse_suricata]
+type = "remap"
+inputs = ["suricata"]
+drop_on_error = true
+reroute_dropped = true
+source = '''
+parsed, err = parse_json(string!(.message))
+if err != null {
+  abort
+}
+. = parsed
+'''
+
+[transforms.dlq_suricata]
+type = "remap"
+inputs = ["parse_suricata.dropped"]
+source = '''
+.dlq.pipeline = "suricata"
+.dlq.reason = "parse_failure"
+'''
+
+[sinks.prometheus_exporter_suricata]
+type = "prometheus_exporter"
+inputs = ["parse_suricata"]
+address = "0.0.0.0:9598"

@@ -1,0 +1,7 @@
+soc_vector_writer:
+  users:
+    - soc-vector
+
+soc_api_reader:
+  users:
+    - soc-api
