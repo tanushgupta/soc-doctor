@@ -56,3 +56,23 @@ export function unique(items) {
 export function makeFinding(file, message, recommendation, evidence, severity = undefined) {
   return { file, message, recommendation, evidence, severity };
 }
+
+export function extractVectorSinkBlocks(content) {
+  const blocks = [];
+  const headerRegex = /^\[sinks\.([A-Za-z0-9_-]+)\]\s*$/gm;
+  const headers = [...content.matchAll(headerRegex)];
+
+  for (let i = 0; i < headers.length; i++) {
+    const header = headers[i];
+    const start = header.index + header[0].length;
+    const end = i + 1 < headers.length ? headers[i + 1].index : content.length;
+    const rawBody = content.slice(start, end);
+
+    const nextTopLevel = rawBody.match(/^\[(?!sinks\.[A-Za-z0-9_-]+\.)[^\]]+\]/m);
+    const body = nextTopLevel ? rawBody.slice(0, nextTopLevel.index) : rawBody;
+
+    blocks.push({ name: header[1], body });
+  }
+
+  return blocks;
+}

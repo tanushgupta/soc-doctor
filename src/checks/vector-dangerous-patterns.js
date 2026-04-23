@@ -43,6 +43,28 @@ export const vectorDangerousPatternsCheck = {
           'high'
         ));
       }
+
+      const unsafeCoercionMatches = collectMatches(file.content, /to_(?:int|float|bool|timestamp)!\(/g);
+      if (unsafeCoercionMatches.length > 0) {
+        findings.push(makeFinding(
+          file.relPath,
+          'VRL uses non-fallible type coercion (to_int!, to_float!, to_bool!, to_timestamp!); one malformed field aborts the transform.',
+          'Use the fallible form with a fallback, e.g. `count = to_int(.count) ?? 0`, and route errors through reroute_dropped.',
+          unsafeCoercionMatches[0],
+          'high'
+        ));
+      }
+
+      const timestampOverwrite = collectMatches(file.content, /\.(?:@?timestamp|event_timestamp)\s*=\s*now\(\)/g);
+      if (timestampOverwrite.length > 0) {
+        findings.push(makeFinding(
+          file.relPath,
+          'VRL overwrites the event timestamp with now(), destroying the source-provided time and breaking incident timelines.',
+          'Preserve the source timestamp when available; only set now() as a fallback when the source has no time field.',
+          timestampOverwrite[0],
+          'medium'
+        ));
+      }
     }
 
     return findings;

@@ -1,0 +1,21 @@
+[sources.vector_internal_metrics]
+type = "internal_metrics"
+scrape_interval_secs = 15
+
+[sources.vector_internal_logs]
+type = "internal_logs"
+
+[sinks.prometheus_vector_internal]
+type = "prometheus_exporter"
+inputs = ["vector_internal_metrics"]
+address = "0.0.0.0:9599"
+
+[sinks.opensearch_vector_logs]
+type = "elasticsearch"
+inputs = ["vector_internal_logs"]
+endpoint = "https://opensearch-node1:9200"
+mode = "bulk"
+bulk.action = "create"
+buffer.type = "disk"
+buffer.max_size = 67108864
+buffer.when_full = "drop_newest"

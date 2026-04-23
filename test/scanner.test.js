@@ -22,13 +22,19 @@ test('broken fixture triggers the expected high-signal checks', async () => {
   assert.ok(ids.has('tenant-rbac'));
   assert.ok(ids.has('rbac-non-admin-wildcard'));
   assert.ok(ids.has('rbac-cluster-all-sprawl'));
+  assert.ok(ids.has('vector-sink-healthcheck-disabled'));
+  assert.ok(ids.has('vector-sink-tls-verify-off'));
+  assert.ok(ids.has('vector-buffer-block-on-ingest'));
+  assert.ok(ids.has('vector-no-disk-buffer'));
+  assert.ok(ids.has('vector-missing-bulk-action'));
+  assert.ok(ids.has('vector-internal-logs-missing'));
   assert.ok(ids.has('alerting-placeholders'));
   assert.ok(ids.has('snapshot-restore-evidence'));
 
   const report = buildReport({ target: 'examples/broken-stack', findings });
-  assert.ok(report.summary.total >= 16);
-  assert.ok(report.summary.counts.critical >= 2);
-  assert.ok(report.summary.counts.high >= 8);
+  assert.ok(report.summary.total >= 22);
+  assert.ok(report.summary.counts.critical >= 3);
+  assert.ok(report.summary.counts.high >= 10);
 });
 
 test('healthy fixture stays clean on high and critical findings', async () => {

@@ -36,6 +36,9 @@ endpoint = "https://opensearch-node1:9200"
 mode = "bulk"
 bulk.action = "create"
 id_key = "wazuh_alert_id"
+buffer.type = "disk"
+buffer.max_size = 268435456
+buffer.when_full = "drop_newest"
 
 [sinks.opensearch_dlq_wazuh]
 type = "elasticsearch"
@@ -43,3 +46,6 @@ inputs = ["dlq_wazuh"]
 endpoint = "https://opensearch-node1:9200"
 mode = "bulk"
 bulk.action = "create"
+buffer.type = "disk"
+buffer.max_size = 104857600
+buffer.when_full = "drop_newest"

@@ -9,5 +9,7 @@ parsed_ts, err = parse_timestamp(timestamp_str, "%Y-%m-%dT%H:%M:%SZ")
 if err == null {
   .@timestamp = parsed_ts
 }
+.@timestamp = now()
+.bytes_sent = to_int!(.bytes_sent_raw)
 .original_message = string!(.message) ?? "<binary>"
 '''

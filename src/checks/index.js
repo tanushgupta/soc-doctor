@@ -11,8 +11,14 @@ import { rbacNonAdminWildcardCheck } from './rbac-non-admin-wildcard.js';
 import { sharedAdminPasswordCheck } from './shared-admin-password.js';
 import { snapshotRestoreEvidenceCheck } from './snapshot-restore-evidence.js';
 import { tenantRbacCheck } from './tenant-rbac.js';
+import { vectorBufferBlockOnIngestCheck } from './vector-buffer-block-on-ingest.js';
 import { vectorDangerousPatternsCheck } from './vector-dangerous-patterns.js';
 import { vectorDlqCheck } from './vector-dlq.js';
+import { vectorInternalLogsMissingCheck } from './vector-internal-logs-missing.js';
+import { vectorMissingBulkActionCheck } from './vector-missing-bulk-action.js';
+import { vectorNoDiskBufferCheck } from './vector-no-disk-buffer.js';
+import { vectorSinkHealthcheckDisabledCheck } from './vector-sink-healthcheck-disabled.js';
+import { vectorSinkTlsVerifyOffCheck } from './vector-sink-tls-verify-off.js';
 import { wazuhReingestionRiskCheck } from './wazuh-reingestion-risk.js';
 
 export const allChecks = [
@@ -26,6 +32,12 @@ export const allChecks = [
   ismRetentionCheck,
   vectorDangerousPatternsCheck,
   vectorDlqCheck,
+  vectorSinkHealthcheckDisabledCheck,
+  vectorSinkTlsVerifyOffCheck,
+  vectorBufferBlockOnIngestCheck,
+  vectorNoDiskBufferCheck,
+  vectorMissingBulkActionCheck,
+  vectorInternalLogsMissingCheck,
   hardcodedHostnamesAndTimezonesCheck,
   wazuhReingestionRiskCheck,
   tenantRbacCheck,

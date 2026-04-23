@@ -27,6 +27,8 @@ Flags:
 - `parse_json!()`
 - `string!() ?? ...`
 - `when_full` under `prometheus_exporter`
+- `to_int!()`, `to_float!()`, `to_bool!()`, `to_timestamp!()` without fallback
+- `.@timestamp = now()` overwriting source timestamp
 
 ## 6. vector-dlq
 Flags:
@@ -81,3 +83,29 @@ Flags:
 ## 16. rbac-cluster-all-sprawl
 Flags:
 - more than one role granted `cluster_permissions: ["cluster_all"]`
+
+## 17. vector-sink-healthcheck-disabled
+Flags:
+- any sink with `healthcheck.enabled = false` or `healthcheck = false`
+
+## 18. vector-sink-tls-verify-off
+Flags:
+- `tls.verify_certificate = false`
+- `tls.verify_hostname = false`
+
+## 19. vector-buffer-block-on-ingest
+Flags:
+- `when_full = "block"` anywhere in a Vector config
+
+## 20. vector-no-disk-buffer
+Flags:
+- elasticsearch/opensearch/kafka/loki/s3 sinks without `buffer.type = "disk"`
+
+## 21. vector-missing-bulk-action
+Flags:
+- elasticsearch sinks with no `bulk.action`
+- elasticsearch sinks with `bulk.action = "index"`
+
+## 22. vector-internal-logs-missing
+Flags:
+- no Vector config declares `type = "internal_logs"` or `"internal_metrics"`
