@@ -4,7 +4,7 @@ Production-readiness scanner for OpenSearch + Wazuh + Vector SOC stacks.
 
 This is a **week-one starter repo** built to prove the shape of the product fast:
 - zero-dependency Node CLI
-- 10 opinionated checks
+- 22 opinionated checks across secrets, OpenSearch hardening, RBAC, Vector ingestion, Wazuh, and resilience
 - broken vs healthy fixtures
 - tests
 - CI
@@ -47,24 +47,31 @@ npx soc-doctor scan .
 
 ## Current checks
 
-1. `shared-admin-password`
-2. `opensearch-audit-logging`
-3. `snapshot-restore-evidence`
-4. `ism-retention`
-5. `vector-dangerous-patterns`
-6. `vector-dlq`
-7. `hardcoded-hostnames-and-timezones`
-8. `wazuh-reingestion-risk`
-9. `tenant-rbac`
-10. `alerting-placeholders`
+**Secrets**
+- `shared-admin-password`, `alerting-placeholders`
 
-See [`docs/rules.md`](./docs/rules.md) for details.
+**OpenSearch hardening**
+- `opensearch-network-binding`, `opensearch-http-tls-disabled`, `opensearch-default-security-init`
+
+**OpenSearch audit**
+- `opensearch-audit-logging`, `opensearch-audit-disabled`
+
+**OpenSearch RBAC**
+- `tenant-rbac`, `rbac-non-admin-wildcard`, `rbac-cluster-all-sprawl`
+
+**Vector ingestion**
+- `vector-dangerous-patterns`, `vector-dlq`, `vector-sink-healthcheck-disabled`, `vector-sink-tls-verify-off`, `vector-buffer-block-on-ingest`, `vector-no-disk-buffer`, `vector-missing-bulk-action`, `vector-internal-logs-missing`
+
+**Wazuh + resilience**
+- `wazuh-reingestion-risk`, `ism-retention`, `snapshot-restore-evidence`, `hardcoded-hostnames-and-timezones`
+
+See [`docs/rules.md`](./docs/rules.md) for what each rule flags, and [`docs/before-after.md`](./docs/before-after.md) for side-by-side broken vs fixed snippets.
 
 ## Example output
 
 ```text
 soc-doctor scan for ./examples/broken-stack
-Score 0/100 | 22 finding(s) | critical 4, high 13, medium 5, low 0, info 0
+Score 0/100 | 42 finding(s) | critical 7, high 22, medium 13, low 0, info 0
 ```
 
 ## Repo layout
