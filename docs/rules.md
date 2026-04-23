@@ -47,8 +47,8 @@ Flags:
 
 ## 9. tenant-rbac
 Flags:
-- no role files
-- wildcard index patterns like `"*"`
+- missing `roles.yml`
+- `roles.yml` present but `roles_mapping.yml` missing
 
 ## 10. alerting-placeholders
 Flags:
@@ -56,3 +56,28 @@ Flags:
 - `REPLACE_WITH_*`
 - `<WEBHOOK>`
 - similar placeholder material in alerting config
+
+## 11. opensearch-audit-disabled
+Flags:
+- `audit.yml` with `config.enabled: false`
+- `enable_rest: false` or `enable_transport: false`
+
+## 12. opensearch-network-binding
+Flags:
+- `network.host: 0.0.0.0` or `_global_` in `opensearch.yml`
+
+## 13. opensearch-http-tls-disabled
+Flags:
+- `plugins.security.ssl.http.enabled: false`
+
+## 14. opensearch-default-security-init
+Flags:
+- `plugins.security.allow_default_init_securityindex: true` left enabled after bootstrap
+
+## 15. rbac-non-admin-wildcard
+Flags:
+- role (name does not contain `admin`/`superuser`/`root`) with `index_patterns: ["*"]`
+
+## 16. rbac-cluster-all-sprawl
+Flags:
+- more than one role granted `cluster_permissions: ["cluster_all"]`

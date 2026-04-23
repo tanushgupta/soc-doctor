@@ -10,19 +10,25 @@ test('broken fixture triggers the expected high-signal checks', async () => {
 
   assert.ok(ids.has('shared-admin-password'));
   assert.ok(ids.has('opensearch-audit-logging'));
+  assert.ok(ids.has('opensearch-audit-disabled'));
+  assert.ok(ids.has('opensearch-network-binding'));
+  assert.ok(ids.has('opensearch-http-tls-disabled'));
+  assert.ok(ids.has('opensearch-default-security-init'));
   assert.ok(ids.has('ism-retention'));
   assert.ok(ids.has('vector-dangerous-patterns'));
   assert.ok(ids.has('vector-dlq'));
   assert.ok(ids.has('hardcoded-hostnames-and-timezones'));
   assert.ok(ids.has('wazuh-reingestion-risk'));
   assert.ok(ids.has('tenant-rbac'));
+  assert.ok(ids.has('rbac-non-admin-wildcard'));
+  assert.ok(ids.has('rbac-cluster-all-sprawl'));
   assert.ok(ids.has('alerting-placeholders'));
   assert.ok(ids.has('snapshot-restore-evidence'));
 
   const report = buildReport({ target: 'examples/broken-stack', findings });
-  assert.ok(report.summary.total >= 10);
-  assert.ok(report.summary.counts.critical >= 1);
-  assert.ok(report.summary.counts.high >= 5);
+  assert.ok(report.summary.total >= 16);
+  assert.ok(report.summary.counts.critical >= 2);
+  assert.ok(report.summary.counts.high >= 8);
 });
 
 test('healthy fixture stays clean on high and critical findings', async () => {
