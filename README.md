@@ -122,4 +122,4 @@ Found a failure mode that bit you in production? File a [check idea](https://git
 
 ## License
 
-[MIT](./LICENSE). Free for any use, commercial or otherwise.
+[MIT](./LICENSE)
