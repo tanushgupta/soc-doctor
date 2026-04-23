@@ -1,0 +1,23 @@
+{
+  "name": "nightly-snapshots",
+  "description": "Nightly snapshot of all acme-* indices",
+  "creation": {
+    "schedule": {
+      "cron": {
+        "expression": "0 2 * * *",
+        "timezone": "UTC"
+      }
+    },
+    "time_limit": "1h"
+  },
+  "snapshot_config": {
+    "repository": "acme-snapshots",
+    "indices": "acme-*",
+    "include_global_state": false,
+    "partial": false
+  },
+  "retention": {
+    "max_age": "30d",
+    "min_count": 5
+  }
+}

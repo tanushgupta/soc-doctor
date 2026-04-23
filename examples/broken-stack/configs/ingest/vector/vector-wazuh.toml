@@ -19,3 +19,5 @@ inputs = ["parse_wazuh"]
 endpoint = "https://opensearch-node1:9200"
 mode = "bulk"
 bulk.action = "create"
+healthcheck.enabled = false
+tls.verify_certificate = false

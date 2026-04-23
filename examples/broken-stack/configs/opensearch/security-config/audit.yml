@@ -1,0 +1,19 @@
+_meta:
+  type: "audit"
+  config_version: 2
+
+config:
+  enabled: false
+  audit:
+    enable_rest: false
+    enable_transport: false
+    resolve_bulk_requests: false
+    log_request_body: false
+    resolve_indices: false
+    exclude_sensitive_headers: true
+    ignore_users:
+      - "kibanaserver"
+      - "admin"
+    ignore_requests: []
+  compliance:
+    enabled: false

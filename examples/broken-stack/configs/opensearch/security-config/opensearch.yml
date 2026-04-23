@@ -1,5 +1,10 @@
 cluster.name: acme-soc
 node.name: opensearch-node1
+network.host: 0.0.0.0
+http.port: 9200
+discovery.type: single-node
 plugins.security.ssl.transport.pemcert_filepath: certs/node.pem
 plugins.security.ssl.transport.pemkey_filepath: certs/node-key.pem
 plugins.security.ssl.transport.pemtrustedcas_filepath: certs/root-ca.pem
+plugins.security.ssl.http.enabled: false
+plugins.security.allow_default_init_securityindex: true

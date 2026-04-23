@@ -1,4 +1,8 @@
 cluster.name: acme-soc
 node.name: opensearch-node1
+network.host: _site_
+network.publish_host: _site_
+http.port: 9200
+plugins.security.ssl.http.enabled: true
 plugins.security.audit.type: internal_opensearch
 plugins.security.audit.config.index: "acme-audit-%{+YYYY.MM.dd}"
