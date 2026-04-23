@@ -4,54 +4,68 @@ Production-readiness scanner for OpenSearch + Wazuh + Vector SOC stacks.
 
 ![soc-doctor demo](./docs/demo.gif)
 
-This is a **week-one starter repo** built to prove the shape of the product fast:
-- zero-dependency Node CLI
-- 22 opinionated checks across secrets, OpenSearch hardening, RBAC, Vector ingestion, Wazuh, and resilience
-- broken vs healthy fixtures
-- tests
-- CI
-- Markdown / JSON / terminal output
+[![CI](https://github.com/tanushgupta/soc-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/tanushgupta/soc-doctor/actions/workflows/ci.yml)
+[![self-test](https://github.com/tanushgupta/soc-doctor/actions/workflows/soc-doctor.yml/badge.svg)](https://github.com/tanushgupta/soc-doctor/actions/workflows/soc-doctor.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
 
-It is intentionally **heuristic-first**, not AST-perfect yet. The goal of v0.1.0 is to catch the painful mistakes that actually break small and mid-sized SOC deployments.
+---
 
-## Why this exists
+## What it is
 
-Most SOC stack pain is not “I need another SIEM.”
-It is:
-- shared passwords across services
-- Vector configs that pass review but crash at runtime
-- no DLQ for parse failures
-- audit logging gaps
-- wildcard RBAC
-- replay risk on Wazuh ingestion
-- fake backup confidence
-- placeholder alerting secrets
+A zero-dependency Node CLI + GitHub Action that scans a SOC stack directory — `docker-compose.yml`, `.env`, `configs/opensearch/**`, `configs/ingest/vector/*.toml`, `configs/alertmanager/*.yml` — and flags the misconfigurations that actually break small-to-mid-sized SOC deployments.
 
-`soc-doctor` is the operator-side scanner for those problems.
+Heuristic-first, not AST-perfect. Designed to catch painful mistakes fast, not to replace a linter.
+
+## Who it's for
+
+- SOC engineers running an OpenSearch + Wazuh + Vector stack via `docker compose`
+- Platform teams inheriting a half-documented SOC from a previous owner
+- MSSPs standardizing hardening across multiple customer deployments
+- Anyone about to promote a SOC stack to production
+
+## What it catches
+
+22 opinionated checks across six surfaces. Full list in [`docs/rules.md`](./docs/rules.md); broken-vs-fixed snippets for every one in [`docs/before-after.md`](./docs/before-after.md).
+
+| Surface | Sample checks |
+|---|---|
+| **Secrets** | weak/shared passwords in `.env`, placeholder webhooks in alertmanager |
+| **OpenSearch hardening** | public `network.host: 0.0.0.0`, HTTP TLS off, `allow_default_init_securityindex` left on |
+| **OpenSearch audit** | `audit.yml` exists but disabled, missing `enable_rest` / `enable_transport` |
+| **OpenSearch RBAC** | non-admin role with `index_patterns: ["*"]`, `cluster_all` granted to multiple roles |
+| **Vector ingestion** | `parse_json!()` footgun, sink TLS verify off, `when_full = "block"`, no disk buffer, silent `bulk.action = "index"`, no internal telemetry |
+| **Wazuh + resilience** | `read_from = "beginning"` replay risk, no ISM retention, snapshot without restore drill, hardcoded hostnames + UTC timestamp assumptions |
 
 ## Quick start
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/tanushgupta/soc-doctor.git
 cd soc-doctor
 
-node ./bin/soc-doctor.js scan ./examples/broken-stack
-node ./bin/soc-doctor.js scan ./examples/healthy-stack
-node ./bin/soc-doctor.js scan ./examples/broken-stack --format json
-node ./bin/soc-doctor.js scan ./examples/broken-stack --format markdown --output report.md
+node bin/soc-doctor.js scan ./examples/broken-stack
+node bin/soc-doctor.js scan ./examples/healthy-stack
+node bin/soc-doctor.js scan /path/to/your/stack --format markdown --output report.md
 ```
 
-When you publish the package, the intended UX is:
+Running against a real Docker Compose stack? See [`docs/quickstart-docker-compose.md`](./docs/quickstart-docker-compose.md) for a read-only workflow and CI template.
 
-```bash
-npx soc-doctor scan .
+## Example output
+
+```text
+soc-doctor scan for ./examples/broken-stack
+Score 0/100 | 42 finding(s) | critical 7, high 22, medium 13, low 0, info 0
+
+1. [CRITICAL] opensearch-http-tls-disabled — HTTP layer TLS is disabled on OpenSearch; API traffic is cleartext.
+   file: configs/opensearch/security-config/opensearch.yml
+   evidence: plugins.security.ssl.http.enabled: false
+   fix: Set plugins.security.ssl.http.enabled: true and issue valid certs.
+
+2. [CRITICAL] opensearch-network-binding — OpenSearch network.host is set to 0.0.0.0, exposing the cluster on all interfaces.
+   ...
 ```
-
-Running against an existing Docker Compose SOC stack? See [`docs/quickstart-docker-compose.md`](./docs/quickstart-docker-compose.md) for a read-only scan walk-through and a copy-paste CI workflow.
 
 ## Use as a GitHub Action
-
-`soc-doctor` ships as a composite GitHub Action in this repo. Drop it into any workflow:
 
 ```yaml
 jobs:
@@ -59,12 +73,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: tanushgupta/soc-doctor@main
+      - uses: tanushgupta/soc-doctor@v0.1.0
         with:
           path: .
           fail-on: critical
           output: soc-doctor-report.md
-
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -72,97 +85,41 @@ jobs:
           path: soc-doctor-report.md
 ```
 
-**Inputs:**
-- `path` (default `.`) — directory to scan
-- `format` (default `markdown`) — `text`, `markdown`, or `json` for the written report
-- `output` (default `soc-doctor-report.md`) — file to write; empty string skips file output
-- `fail-on` (default `critical`) — severity threshold that fails the job: `none`, `low`, `medium`, `high`, or `critical`
-- `node-version` (default `20`)
-
-**Outputs:** `total`, `critical`, `high`, `medium`, `report-path`
+**Inputs:** `path`, `format` (text / markdown / json), `output`, `fail-on` (none / low / medium / high / critical), `node-version`.
+**Outputs:** `total`, `critical`, `high`, `medium`, `report-path`.
 
 The action is self-tested on every push against both fixture stacks — see [.github/workflows/soc-doctor.yml](./.github/workflows/soc-doctor.yml).
 
-## Current checks
+## Roadmap
 
-**Secrets**
-- `shared-admin-password`, `alerting-placeholders`
+**Shipped in v0.1.0**
+- 22 opinionated checks
+- CLI with text / markdown / JSON output and `--fail-on` threshold
+- Composite GitHub Action
+- Broken + healthy fixture stacks
+- Before/after docs for every check
 
-**OpenSearch hardening**
-- `opensearch-network-binding`, `opensearch-http-tls-disabled`, `opensearch-default-security-init`
-
-**OpenSearch audit**
-- `opensearch-audit-logging`, `opensearch-audit-disabled`
-
-**OpenSearch RBAC**
-- `tenant-rbac`, `rbac-non-admin-wildcard`, `rbac-cluster-all-sprawl`
-
-**Vector ingestion**
-- `vector-dangerous-patterns`, `vector-dlq`, `vector-sink-healthcheck-disabled`, `vector-sink-tls-verify-off`, `vector-buffer-block-on-ingest`, `vector-no-disk-buffer`, `vector-missing-bulk-action`, `vector-internal-logs-missing`
-
-**Wazuh + resilience**
-- `wazuh-reingestion-risk`, `ism-retention`, `snapshot-restore-evidence`, `hardcoded-hostnames-and-timezones`
-
-See [`docs/rules.md`](./docs/rules.md) for what each rule flags, and [`docs/before-after.md`](./docs/before-after.md) for side-by-side broken vs fixed snippets.
-
-## Example output
-
-```text
-soc-doctor scan for ./examples/broken-stack
-Score 0/100 | 42 finding(s) | critical 7, high 22, medium 13, low 0, info 0
-```
-
-## Repo layout
-
-```text
-bin/
-src/
-  checks/
-  lib/
-docs/
-examples/
-  broken-stack/
-  healthy-stack/
-test/
-.github/workflows/
-```
-
-## Week-one scope that is already done
-
-- CLI scaffold
-- report model
-- 10 initial checks
-- two fixture stacks
-- tests for broken + healthy fixtures
-- CI workflow
-
-## What is deliberately not done yet
-
-These are **week two and beyond**:
-- full YAML / TOML AST parsing
-- native `vector validate` integration
-- SARIF output
-- GitHub Marketplace listing (the action itself ships here; only the marketplace submission is pending)
-- policy profiles (`soc-baseline`, `regulated`, `lab`)
-- auto-remediation suggestions with patches
-- OpenSearch query-based runtime validation
+**Next**
+- Full YAML / TOML AST parsing (regex-first → structural)
 - `.soc-doctor-ignore` for per-finding suppression
+- SARIF output for GitHub code scanning integration
+- npm publish (`npx soc-doctor scan .`)
+- GitHub Marketplace listing
+- Policy profiles (`soc-baseline`, `regulated`, `lab`)
+- Native `vector validate` integration
 
-## Publish plan
+Track real work in [open issues](https://github.com/tanushgupta/soc-doctor/issues) — filtered by [`roadmap`](https://github.com/tanushgupta/soc-doctor/labels/roadmap), [`check idea`](https://github.com/tanushgupta/soc-doctor/labels/check%20idea), and [`good first issue`](https://github.com/tanushgupta/soc-doctor/labels/good%20first%20issue).
 
-Recommended repo name:
-- `soc-doctor`
-
-Recommended npm target:
-- `soc-doctor`
-- fallback if taken: `@tanushgupta/soc-doctor`
-
-## Run tests
+## Run the tests
 
 ```bash
 npm test
 ```
 
+## Contributing
+
+Found a failure mode that bit you in production? File a [check idea](https://github.com/tanushgupta/soc-doctor/issues/new?labels=check%20idea). New to the repo? The [`good first issue`](https://github.com/tanushgupta/soc-doctor/labels/good%20first%20issue) list is the fastest way in.
+
 ## License
 
-MIT
+[MIT](./LICENSE). Free for any use, commercial or otherwise.
