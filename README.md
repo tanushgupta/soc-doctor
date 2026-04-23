@@ -2,6 +2,8 @@
 
 Production-readiness scanner for OpenSearch + Wazuh + Vector SOC stacks.
 
+![soc-doctor demo](./docs/demo.gif)
+
 This is a **week-one starter repo** built to prove the shape of the product fast:
 - zero-dependency Node CLI
 - 22 opinionated checks across secrets, OpenSearch hardening, RBAC, Vector ingestion, Wazuh, and resilience
