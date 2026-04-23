@@ -47,6 +47,40 @@ npx soc-doctor scan .
 
 Running against an existing Docker Compose SOC stack? See [`docs/quickstart-docker-compose.md`](./docs/quickstart-docker-compose.md) for a read-only scan walk-through and a copy-paste CI workflow.
 
+## Use as a GitHub Action
+
+`soc-doctor` ships as a composite GitHub Action in this repo. Drop it into any workflow:
+
+```yaml
+jobs:
+  soc-doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: tanushgupta/soc-doctor@main
+        with:
+          path: .
+          fail-on: critical
+          output: soc-doctor-report.md
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soc-doctor-report
+          path: soc-doctor-report.md
+```
+
+**Inputs:**
+- `path` (default `.`) — directory to scan
+- `format` (default `markdown`) — `text`, `markdown`, or `json` for the written report
+- `output` (default `soc-doctor-report.md`) — file to write; empty string skips file output
+- `fail-on` (default `critical`) — severity threshold that fails the job: `none`, `low`, `medium`, `high`, or `critical`
+- `node-version` (default `20`)
+
+**Outputs:** `total`, `critical`, `high`, `medium`, `report-path`
+
+The action is self-tested on every push against both fixture stacks — see [.github/workflows/soc-doctor.yml](./.github/workflows/soc-doctor.yml).
+
 ## Current checks
 
 **Secrets**
@@ -106,10 +140,11 @@ These are **week two and beyond**:
 - full YAML / TOML AST parsing
 - native `vector validate` integration
 - SARIF output
-- GitHub Action marketplace packaging
+- GitHub Marketplace listing (the action itself ships here; only the marketplace submission is pending)
 - policy profiles (`soc-baseline`, `regulated`, `lab`)
 - auto-remediation suggestions with patches
 - OpenSearch query-based runtime validation
+- `.soc-doctor-ignore` for per-finding suppression
 
 ## Publish plan
 

@@ -1,0 +1,73 @@
+name: soc-doctor self-test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  against-healthy:
+    name: action against examples/healthy-stack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run soc-doctor action
+        id: scan
+        uses: ./
+        with:
+          path: examples/healthy-stack
+          fail-on: critical
+          output: healthy-report.md
+
+      - name: Summarize outputs
+        run: |
+          echo "total=${{ steps.scan.outputs.total }}"
+          echo "critical=${{ steps.scan.outputs.critical }}"
+          echo "high=${{ steps.scan.outputs.high }}"
+          echo "medium=${{ steps.scan.outputs.medium }}"
+          echo "report-path=${{ steps.scan.outputs.report-path }}"
+
+      - name: Assert healthy fixture has no critical findings
+        run: |
+          if [ "${{ steps.scan.outputs.critical }}" != "0" ]; then
+            echo "expected 0 critical findings on healthy fixture, got ${{ steps.scan.outputs.critical }}"
+            exit 1
+          fi
+
+      - name: Upload healthy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: healthy-report
+          path: healthy-report.md
+
+  against-broken:
+    name: action against examples/broken-stack (expected to fail)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run soc-doctor action
+        id: scan
+        uses: ./
+        continue-on-error: true
+        with:
+          path: examples/broken-stack
+          fail-on: critical
+          output: broken-report.md
+
+      - name: Assert action failed the step as expected
+        run: |
+          if [ "${{ steps.scan.outcome }}" != "failure" ]; then
+            echo "expected the action to fail on broken-stack (it has critical findings)"
+            exit 1
+          fi
+          echo "action correctly failed; total=${{ steps.scan.outputs.total }} critical=${{ steps.scan.outputs.critical }}"
+
+      - name: Upload broken report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: broken-report
+          path: broken-report.md

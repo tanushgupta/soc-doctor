@@ -1,0 +1,118 @@
+name: soc-doctor
+description: Production-readiness scanner for OpenSearch + Wazuh + Vector SOC stacks.
+author: Tanush Gupta
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  path:
+    description: 'Path to scan (relative to the repo root).'
+    required: false
+    default: '.'
+  format:
+    description: 'Report format written to the output file: text, markdown, or json.'
+    required: false
+    default: 'markdown'
+  output:
+    description: 'Report file to write. Pass an empty string to skip file output.'
+    required: false
+    default: 'soc-doctor-report.md'
+  fail-on:
+    description: 'Severity threshold that fails the job: none, low, medium, high, or critical.'
+    required: false
+    default: 'critical'
+  node-version:
+    description: 'Node.js version used to run the scanner.'
+    required: false
+    default: '20'
+
+outputs:
+  total:
+    description: 'Total number of findings.'
+    value: ${{ steps.scan.outputs.total }}
+  critical:
+    description: 'Count of critical findings.'
+    value: ${{ steps.scan.outputs.critical }}
+  high:
+    description: 'Count of high findings.'
+    value: ${{ steps.scan.outputs.high }}
+  medium:
+    description: 'Count of medium findings.'
+    value: ${{ steps.scan.outputs.medium }}
+  report-path:
+    description: 'Path to the written report file, or empty if no file was requested.'
+    value: ${{ steps.scan.outputs.report_path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Run soc-doctor
+      id: scan
+      shell: bash
+      env:
+        SCAN_PATH: ${{ inputs.path }}
+        FORMAT: ${{ inputs.format }}
+        OUTPUT: ${{ inputs.output }}
+        FAIL_ON: ${{ inputs.fail-on }}
+      run: |
+        set -euo pipefail
+
+        bin="${{ github.action_path }}/bin/soc-doctor.js"
+        tmp_json="$(mktemp)"
+
+        node "$bin" scan "$SCAN_PATH" \
+          --format json \
+          --quiet \
+          --output "$tmp_json" || true
+
+        total=$(jq -r '.summary.total'           "$tmp_json")
+        critical=$(jq -r '.summary.counts.critical' "$tmp_json")
+        high=$(jq -r '.summary.counts.high'         "$tmp_json")
+        medium=$(jq -r '.summary.counts.medium'     "$tmp_json")
+        low=$(jq -r '.summary.counts.low'           "$tmp_json")
+
+        {
+          echo "total=$total"
+          echo "critical=$critical"
+          echo "high=$high"
+          echo "medium=$medium"
+        } >> "$GITHUB_OUTPUT"
+
+        if [ -n "$OUTPUT" ]; then
+          if [ "$FORMAT" = "json" ]; then
+            cp "$tmp_json" "$OUTPUT"
+          else
+            node "$bin" scan "$SCAN_PATH" \
+              --format "$FORMAT" \
+              --quiet \
+              --output "$OUTPUT" || true
+          fi
+          echo "report_path=$OUTPUT" >> "$GITHUB_OUTPUT"
+        else
+          echo "report_path=" >> "$GITHUB_OUTPUT"
+        fi
+
+        echo "::notice title=soc-doctor::total=$total critical=$critical high=$high medium=$medium"
+
+        case "$FAIL_ON" in
+          none)     threshold_count=0 ;;
+          critical) threshold_count=$critical ;;
+          high)     threshold_count=$((critical + high)) ;;
+          medium)   threshold_count=$((critical + high + medium)) ;;
+          low)      threshold_count=$((critical + high + medium + low)) ;;
+          *)
+            echo "Unsupported fail-on value: $FAIL_ON (use none, low, medium, high, or critical)" >&2
+            exit 1
+            ;;
+        esac
+
+        if [ "$threshold_count" -gt 0 ]; then
+          echo "soc-doctor: $threshold_count finding(s) at or above severity '$FAIL_ON' — failing job."
+          exit 1
+        fi
