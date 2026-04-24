@@ -1,0 +1,5 @@
+# GitHub uses CODEOWNERS to auto-request review on every pull request
+# touching matching paths. Combined with branch protection's "require
+# review from Code Owners", no PR merges without maintainer review.
+
+* @tanushgupta

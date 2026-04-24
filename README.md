@@ -128,6 +128,8 @@ npm test
 
 Found a failure mode that bit you in production? File a [check idea](https://github.com/tanushgupta/soc-doctor/issues/new?labels=check%20idea). New to the repo? The [`good first issue`](https://github.com/tanushgupta/soc-doctor/labels/good%20first%20issue) list is the fastest way in.
 
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, the ground rules (zero runtime deps, heuristic-first, no real secrets in fixtures), and the step-by-step for adding a check. All changes go through pull request with maintainer review + green CI — no direct pushes to `main`.
+
 ## License
 
 [MIT](./LICENSE)
