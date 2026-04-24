@@ -1,6 +1,6 @@
 {
   "name": "soc-doctor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Production-readiness scanner for OpenSearch + Wazuh + Vector SOC stacks.",
   "type": "module",
   "bin": {
